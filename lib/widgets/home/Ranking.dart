@@ -23,7 +23,10 @@ class _CommitRankingState extends State<CommitRanking> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('오늘의 커밋왕'),
+        title: Text(
+          '이번달 커밋왕',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -83,14 +86,13 @@ class _CommitRankingState extends State<CommitRanking> {
           _rankingList.add(selfCommitInfo);
         }
 
-
         // 커밋 정보를 모두 가져온 후, 커밋 수와 연속 커밋일수를 기준으로 정렬
         _rankingList.sort((a, b) {
-          int comparison = b['consecutive_days'].compareTo(a['consecutive_days']);
+          int comparison = b['commit_count'].compareTo(a['commit_count']);
           if (comparison != 0) {
             return comparison;
           } else {
-            return b['commit_count'].compareTo(a['commit_count']);
+            return b['consecutive_days'].compareTo(a['consecutive_days']);
           }
         });
       } else {
@@ -119,16 +121,30 @@ class _CommitRankingState extends State<CommitRanking> {
       int commitCount = 0;
       int consecutiveDays = 0;
 
+      DateTime? lastCommitDate; // Nullable로 변경
+
       for (var event in data) {
         final eventType = event['type'];
         final payload = event['payload'];
         if (eventType == 'PushEvent' && payload != null) {
           final commitDateStr = event['created_at'].substring(0, 10);
           final commitDate = DateTime.parse(commitDateStr);
-          if (commitDate.year == today.year && commitDate.month == today.month && commitDate.day == today.day) {
-            commitCount++;
+
+          if (commitDate == today) {
             consecutiveDays++;
+          } else if (commitDate == today.subtract(Duration(days: 1))) {
+            consecutiveDays++;
+          } else if (commitDate == today.subtract(Duration(days: 2))) {
+            consecutiveDays++;
+          } else {
+            consecutiveDays = 0;
           }
+
+          if (commitDate.month == today.month) {
+            commitCount++;
+          }
+
+          lastCommitDate = commitDate;
         }
       }
 

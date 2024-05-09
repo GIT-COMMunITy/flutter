@@ -47,8 +47,10 @@ class _CalendarPageState extends State<CalendarPage> {
           if (event['type'] == 'PushEvent') {
             String dateStr = event['created_at'].substring(0, 10);
             DateTime date = DateTime.parse(dateStr);
-            commitCounts.update(date, (value) => value + 1, ifAbsent: () => 1);
-            commitMessages.update(date, (value) => value + [event['payload']['commits'].map((commit) => commit['message']).join('\n')], ifAbsent: () => [event['payload']['commits'].map((commit) => commit['message']).join('\n')]);
+            if (date.month == month.month) { // 현재 월의 데이터만 고려
+              commitCounts.update(date, (value) => value + 1, ifAbsent: () => 1);
+              commitMessages.update(date, (value) => value + [event['payload']['commits'].map((commit) => commit['message']).join('\n')], ifAbsent: () => [event['payload']['commits'].map((commit) => commit['message']).join('\n')]);
+            }
           }
         });
 
@@ -91,14 +93,14 @@ class _CalendarPageState extends State<CalendarPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Commits on ${date.year}-${date.month}-${date.day}'),
-            content: Text('${_commitMessages[date]?.join('\n') ?? ''}'),
+            title: Text(' ${date.year}년 ${date.month}월 ${date.day}일 Commit 기록', style: TextStyle(fontWeight: FontWeight.w700),),
+            content: Text('${_commitMessages[date]?.join('\n') ?? ''}', style: TextStyle(fontWeight: FontWeight.w700)),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Close'),
+                child: Text('닫기'),
               ),
             ],
           );
@@ -111,75 +113,71 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GitHub Contribution Calendar'),
+        title: Text('내 커밋 달력', style: TextStyle(fontWeight: FontWeight.w700),),
       ),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: _previousMonth,
-              ),
-              Text(
-                '${_currentMonth.year}-${_currentMonth.month}',
-                style: TextStyle(fontSize: 20),
-              ),
-              IconButton(
-                icon: Icon(Icons.arrow_forward),
-                onPressed: _nextMonth,
-              ),
-            ],
-          ),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                mainAxisSpacing: 4.0,
-                crossAxisSpacing: 4.0,
-              ),
-              itemCount: _currentMonth.difference(DateTime(_currentMonth.year, _currentMonth.month, 1)).inDays +
-                  DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day,
-              itemBuilder: (context, index) {
-                DateTime date = DateTime(_currentMonth.year, _currentMonth.month, index + 1);
-                int commitCount = _commitCounts[date] ?? 0;
-                Color color = commitCount == 0
-                    ? Colors.grey[200]!
-                    : commitCount <= 2
-                    ? Colors.lightGreen[100]!
-                    : commitCount <= 5
-                    ? Colors.lightGreen[300]!
-                    : commitCount <= 10
-                    ? Colors.lightGreen[500]!
-                    : commitCount <= 15
-                    ? Colors.lightGreen[700]!
-                    : Colors.lightGreen[900]!;
-
-                return InkWell(
-                  onTap: () {
-                    _onDateSelected(date);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: color,
-                      border: Border.all(color: Colors.grey),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+      body: SfCalendar(
+        view: CalendarView.month,
+        firstDayOfWeek: 1,
+        showNavigationArrow: true,
+        headerStyle: CalendarHeaderStyle(
+          textStyle: TextStyle(color: Colors.black, fontSize: 18),
+          textAlign: TextAlign.center,
+        ),
+        todayHighlightColor: Colors.red,
+        showDatePickerButton: true,
+        showCurrentTimeIndicator: true,
+        monthViewSettings: MonthViewSettings(
+          appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+        ),
+        dataSource: _getCalendarDataSource(),
+        onViewChanged: (viewChangedDetails) {
+          _fetchCommitData(viewChangedDetails.visibleDates[viewChangedDetails.visibleDates.length ~/ 2]);
+        },
+        onTap: (calendarTapDetails) {
+          if (calendarTapDetails.targetElement == CalendarElement.calendarCell) {
+            _onDateSelected(calendarTapDetails.date!);
+          }
+        },
       ),
     );
+  }
+
+  _DataSource _getCalendarDataSource() {
+    List<Appointment> appointments = [];
+    _commitCounts.forEach((key, value) {
+      if (_commitCounts.containsKey(key)) {
+        appointments.add(Appointment(
+          startTime: key,
+          endTime: key.add(Duration(days: 0)),
+          subject: value.toString(),
+          color: getColorForCommitCount(value),
+        ));
+      }
+    });
+
+    return _DataSource(appointments);
+  }
+
+
+
+
+  Color getColorForCommitCount(int commitCount) {
+    if (commitCount == 0) {
+      return Colors.grey[200]!;
+    } else if (commitCount <= 5) {
+      return Colors.red[400]!;
+    } else if (commitCount <= 10) {
+      return Colors.red[300]!;
+    } else if (commitCount <= 15) {
+      return Colors.red[200]!;
+    } else {
+      return Colors.red[100]!;
+    }
+  }
+}
+
+class _DataSource extends CalendarDataSource {
+  _DataSource(List<Appointment> source) {
+    appointments = source;
   }
 }
