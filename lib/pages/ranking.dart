@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutterproject/widgets/home/Ranking.dart';
 
 class RankingPage extends StatelessWidget {
   @override
@@ -8,7 +9,7 @@ class RankingPage extends StatelessWidget {
         title: Text('순위'),
       ),
       body: Center(
-        child: Text('순위 페이지'),
+        child:CommitRanking()
       ),
     );
   }

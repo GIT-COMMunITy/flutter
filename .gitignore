@@ -9,6 +9,10 @@
 .history
 .svn/
 .env
+.env.example
+.env.local
+.env.staging
+assets/config/.env
 migrate_working_dir/
 
 # IntelliJ related
