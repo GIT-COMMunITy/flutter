@@ -7,6 +7,8 @@ import 'pages/mypage.dart';
 import 'pages/ranking.dart';
 import 'widgets/footer.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
