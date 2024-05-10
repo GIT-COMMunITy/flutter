@@ -33,9 +33,9 @@ class _NoCommitState extends State<NoCommit> {
               child: Text(
                 '⭐ 오늘 커밋 안 한 사람',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Pretendard-Bold'
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Pretendard-Bold'
                 ),
               ),
             ),
