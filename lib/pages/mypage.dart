@@ -24,7 +24,7 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   final TextEditingController _controller = TextEditingController();
-  List<String> guestbookEntries = [];
+  List<GuestbookEntry> guestbookEntries = [];
 
   // GitHub 사용자 정보를 저장할 변수
   String? userId;
@@ -35,10 +35,8 @@ class _MyPageState extends State<MyPage> {
   void initState() {
     super.initState();
     fetchGuestbookOnStart();
-    fetchGitHubUserInfo(
-        'cowboysj'); // GitHub 사용자 정보 가져오기 (여기서 'username'에는 사용자의 GitHub 아이디를 넣어야 함)
-    fetchFollowersAndFollowing(
-        'cowboysj'); // 팔로워와 팔로잉 정보 가져오기
+    fetchGitHubUserInfo('cowboysj'); // GitHub 사용자 정보 가져오기
+    fetchFollowersAndFollowing('cowboysj'); // 팔로워와 팔로잉 정보 가져오기
   }
 
   @override
@@ -95,8 +93,8 @@ class _MyPageState extends State<MyPage> {
             flex: 5,
             child: ListView.builder(
               itemCount: guestbookEntries.length,
-              itemBuilder: (context, index) => ListTile(
-                title: Text(guestbookEntries[index]),
+              itemBuilder: (context, index) => GuestbookTile(
+                entry: guestbookEntries[index],
               ),
             ),
           ),
@@ -134,7 +132,16 @@ class _MyPageState extends State<MyPage> {
       'Content-Type': 'application/json; charset=UTF-8',
       'Origin': 'http://localhost:3000',
     };
-    final data = {'id': 'cowboysj', 'content': content};
+
+    // 현재 날짜 생성
+    final now = DateTime.now();
+    final dateFormatted = '${now.year}-${now.month}-${now.day}';
+
+    final data = {
+      'id': 'cowboysj',
+      'content': content,
+      'timestamp': dateFormatted, // 현재 날짜를 포함하여 서버에 전송
+    };
 
     final response = await http.post(
       Uri.parse(url),
@@ -151,18 +158,23 @@ class _MyPageState extends State<MyPage> {
   }
 
   void fetchGuestbookOnStart() async {
-    final response = await http.get(
-        Uri.parse('http://localhost:3000/guestbook/cowboysj'));
+    final response = await http.get(Uri.parse('http://localhost:3000/guestbook/cowboysj'));
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final List<dynamic> data = jsonDecode(response.body);
       setState(() {
-        guestbookEntries =
-        List<String>.from(data.map((entry) => entry['content'].toString()));
+        guestbookEntries = List<GuestbookEntry>.from(data.map((entry) =>
+            GuestbookEntry(
+              id: entry['id'].toString(),
+              content: entry['content'].toString(),
+              timestamp: entry['date'].toString(), // 서버에서 반환된 데이터의 필드 이름을 수정
+            ),
+        ));
       });
     } else {
       print('Failed to load guestbook');
     }
   }
+
 
   // GitHub 사용자 정보 가져오는 함수
   void fetchGitHubUserInfo(String username) async {
@@ -276,6 +288,65 @@ class _MyPageState extends State<MyPage> {
           ],
         );
       },
+    );
+  }
+}
+
+class GuestbookEntry {
+  final String id;
+  final String content;
+  final String timestamp;
+
+  GuestbookEntry({
+    required this.id,
+    required this.content,
+    required this.timestamp,
+  });
+}
+
+class GuestbookTile extends StatelessWidget {
+  final GuestbookEntry entry;
+
+  const GuestbookTile({Key? key, required this.entry}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.all(8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 7,
+            offset: Offset(0, 3),
+          ),
+        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            entry.id,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            entry.timestamp,
+            style: TextStyle(
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(entry.content),
+        ],
+      ),
     );
   }
 }
