@@ -16,7 +16,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Navigator.pushNamed(context, '/home');
               },
               child: Text(
-                "GitKing",
+                "COMMinITy",
                 style: TextStyle(
                   color:Color(0xffff6868),
                   fontWeight: FontWeight.w800,

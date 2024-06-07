@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart'; // url_launcher 패키지 임포트
 
 class NoCommit extends StatefulWidget {
   @override
@@ -24,16 +25,16 @@ class _NoCommitState extends State<NoCommit> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Color(0xffFFF7F0), // 배경색을 lightBlue로 설정합니다.
+        color: Color(0xffFFF7F0), // 배경색을 설정합니다.
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, // 텍스트를 왼쪽으로 정렬합니다.
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                '⭐ 오늘 커밋 안 한 사람',
+                '오늘 커밋 안 한 사람',
                 style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Pretendard-Bold'
                 ),
@@ -60,17 +61,23 @@ class _NoCommitState extends State<NoCommit> {
       itemCount: _noCommitUsers.length,
       itemBuilder: (context, index) {
         final user = _noCommitUsers[index];
-        return Padding(
-          padding: const EdgeInsets.all(5),
-          child: Column(
-            children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage('https://github.com/$user.png'),
-                radius: 30,
+        return MouseRegion(
+          cursor: SystemMouseCursors.click, // 커서를 클릭 모양으로 변경
+          child: GestureDetector(
+            onTap: () => _launchURL('https://github.com/$user'), // 이미지 클릭 시 URL 열기
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: NetworkImage('https://github.com/$user.png'),
+                    radius: 30,
+                  ),
+                  SizedBox(height: 8),
+                  Text(user),
+                ],
               ),
-              SizedBox(height: 8),
-              Text(user),
-            ],
+            ),
           ),
         );
       },
@@ -157,5 +164,13 @@ class _NoCommitState extends State<NoCommit> {
     setState(() {
       _noCommitUsers = noCommitUsers;
     });
+  }
+
+  void _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

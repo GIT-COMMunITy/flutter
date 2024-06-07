@@ -1,8 +1,7 @@
-import 'dart:ui';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 void main() {
   runApp(MyApp());
@@ -25,8 +24,6 @@ class MyPage extends StatefulWidget {
 class _MyPageState extends State<MyPage> {
   final TextEditingController _controller = TextEditingController();
   List<GuestbookEntry> guestbookEntries = [];
-
-  // GitHub 사용자 정보를 저장할 변수
   String? userId;
   List<String> followers = [];
   List<String> following = [];
@@ -35,23 +32,21 @@ class _MyPageState extends State<MyPage> {
   void initState() {
     super.initState();
     fetchGuestbookOnStart();
-    fetchGitHubUserInfo('cowboysj'); // GitHub 사용자 정보 가져오기
-    fetchFollowersAndFollowing('cowboysj'); // 팔로워와 팔로잉 정보 가져오기
+    fetchGitHubUserInfo('cowboysj');
+    fetchFollowersAndFollowing('cowboysj');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('마이페이지'),
-      ),
+
       body: Column(
         children: [
           Expanded(
             flex: 1,
             child: Container(
               color: Color(0xffFFF2F2),
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(10),
               alignment: Alignment.centerLeft,
               child: Text(
                 userId ?? '',
@@ -72,7 +67,6 @@ class _MyPageState extends State<MyPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      // 팔로워 리스트 보여주기
                       showFollowers();
                     },
                     child: Text('팔로워'),
@@ -80,7 +74,6 @@ class _MyPageState extends State<MyPage> {
                   SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
-                      // 팔로잉 리스트 보여주기
                       showFollowing();
                     },
                     child: Text('팔로잉'),
@@ -95,6 +88,8 @@ class _MyPageState extends State<MyPage> {
               itemCount: guestbookEntries.length,
               itemBuilder: (context, index) => GuestbookTile(
                 entry: guestbookEntries[index],
+                onEdit: () => editEntry(context, guestbookEntries[index]),
+                onDelete: () => deleteEntry(context, guestbookEntries[index]),
               ),
             ),
           ),
@@ -133,14 +128,13 @@ class _MyPageState extends State<MyPage> {
       'Origin': 'http://localhost:3000',
     };
 
-    // 현재 날짜 생성
     final now = DateTime.now();
     final dateFormatted = '${now.year}-${now.month}-${now.day}';
 
     final data = {
       'id': 'cowboysj',
       'content': content,
-      'timestamp': dateFormatted, // 현재 날짜를 포함하여 서버에 전송
+      'timestamp': dateFormatted,
     };
 
     final response = await http.post(
@@ -166,7 +160,7 @@ class _MyPageState extends State<MyPage> {
             GuestbookEntry(
               id: entry['id'].toString(),
               content: entry['content'].toString(),
-              timestamp: entry['date'].toString(), // 서버에서 반환된 데이터의 필드 이름을 수정
+              timestamp: entry['date'].toString(),
             ),
         ));
       });
@@ -175,8 +169,6 @@ class _MyPageState extends State<MyPage> {
     }
   }
 
-
-  // GitHub 사용자 정보 가져오는 함수
   void fetchGitHubUserInfo(String username) async {
     final response = await http.get(
       Uri.parse('https://api.github.com/users/$username'),
@@ -191,7 +183,6 @@ class _MyPageState extends State<MyPage> {
     }
   }
 
-  // 팔로워와 팔로잉 정보 가져오는 함수
   void fetchFollowersAndFollowing(String username) async {
     final followerResponse = await http.get(
       Uri.parse('https://api.github.com/users/$username/followers'),
@@ -230,8 +221,7 @@ class _MyPageState extends State<MyPage> {
             '팔로워',
             style: TextStyle(
               fontSize: 20,
-              fontFamily: "Pretendard-Bold",
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.bold,
             ),
           ),
           content: SingleChildScrollView(
@@ -265,8 +255,7 @@ class _MyPageState extends State<MyPage> {
             '팔로잉',
             style: TextStyle(
               fontSize: 20,
-              fontFamily: "Pretendard-Bold",
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.bold,
             ),
           ),
           content: SingleChildScrollView(
@@ -290,6 +279,109 @@ class _MyPageState extends State<MyPage> {
       },
     );
   }
+
+  void editEntry(BuildContext context, GuestbookEntry entry) async {
+    String? newText = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('글 수정'),
+          content: TextField(
+            controller: TextEditingController(text: entry.content),
+            decoration: InputDecoration(
+              hintText: '수정할 내용을 입력하세요...',
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(null); // Passing null when cancelled
+              },
+              child: Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(_controller.text); // Return the text entered in TextField
+              },
+              child: Text('저장'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newText != null) {
+      // Update entry with newText
+      final url = 'http://localhost:3000/guestbook/cowboysj/${entry.id}';
+      final headers = {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Origin': 'http://localhost:3000',
+      };
+
+      final data = {
+        'content': newText,
+      };
+
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200) {
+        print('Guestbook entry updated successfully');
+
+        // Refresh guestbook entries
+        fetchGuestbookOnStart();
+      } else {
+        print('Failed to update entry in guestbook');
+      }
+    }
+  }
+
+
+
+
+
+
+  void deleteEntry(BuildContext context, GuestbookEntry entry) async {
+    final confirmed = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('글 삭제'),
+          content: Text('정말로 이 글을 삭제하시겠습니까?'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed) {
+       final url = 'http://localhost:3000/guestbook/cowboysj/${entry.id}';
+
+       final response = await http.delete(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        print('Guestbook entry deleted successfully');
+        fetchGuestbookOnStart();
+      } else {
+        print('Failed to delete entry from guestbook');
+      }
+    }
+  }
 }
 
 class GuestbookEntry {
@@ -306,8 +398,10 @@ class GuestbookEntry {
 
 class GuestbookTile extends StatelessWidget {
   final GuestbookEntry entry;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const GuestbookTile({Key? key, required this.entry}) : super(key: key);
+  const GuestbookTile({Key? key, required this.entry, this.onEdit, this.onDelete}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -329,12 +423,29 @@ class GuestbookTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            entry.id,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                entry.content,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: onEdit,
+                    icon: Icon(Icons.edit),
+                  ),
+                  IconButton(
+                    onPressed: onDelete,
+                    icon: Icon(Icons.delete),
+                  ),
+                ],
+              ),
+            ],
           ),
           SizedBox(height: 4),
           Text(
@@ -344,7 +455,7 @@ class GuestbookTile extends StatelessWidget {
             ),
           ),
           SizedBox(height: 8),
-          Text(entry.content),
+          Text(entry.id),
         ],
       ),
     );

@@ -34,6 +34,11 @@ class Footer extends StatelessWidget {
           icon: Icon(Icons.person),
           label: '마이페이지',
         ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.people),
+          label: '커뮤니티',
+        ),
+
       ],
       currentIndex: selectedIndex,
       onTap: onItemTapped,

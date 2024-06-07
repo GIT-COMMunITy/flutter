@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutterproject/pages/community.dart';
 import 'widgets/header.dart'; // 중복된 임포트 제거
 
 import 'pages/calendar.dart';
@@ -22,6 +23,7 @@ class _MyAppState extends State<MyApp> {
     RankingPage(),
     CalendarPage(),
     MyPage(),
+    CommunityPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -41,6 +43,9 @@ class _MyAppState extends State<MyApp> {
         break;
       case 3:
         Navigator.pushNamed(context, '/mypage');
+        break;
+      case 4:
+        Navigator.pushNamed(context, '/community');
         break;
       default:
     }
@@ -64,6 +69,7 @@ class _MyAppState extends State<MyApp> {
         '/ranking': (context) => RankingPage(),
         '/calendar': (context) => CalendarPage(),
         '/mypage': (context) => MyPage(),
+        '/community': (context) => CommunityPage(),
       },
     );
   }

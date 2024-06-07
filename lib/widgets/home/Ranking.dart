@@ -25,7 +25,7 @@ class _CommitRankingState extends State<CommitRanking> {
       appBar: AppBar(
         title: Text(
           '이번달 커밋왕',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle( fontSize : 18, fontWeight: FontWeight.w600),
         ),
       ),
       body: _isLoading
@@ -36,7 +36,7 @@ class _CommitRankingState extends State<CommitRanking> {
 
   Widget _buildCommitRanking() {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+
       child: ListView.builder(
         itemCount: _rankingList.length,
         itemBuilder: (context, index) {
@@ -52,7 +52,7 @@ class _CommitRankingState extends State<CommitRanking> {
               backgroundImage: NetworkImage(imageUrl),
             ),
             title: Text('$place등 $username  $commitCount commits'),
-            subtitle: Text('연속 $consecutiveDays일'),
+            //subtitle: Text('연속 $consecutiveDays일'),
           );
         },
       ),
