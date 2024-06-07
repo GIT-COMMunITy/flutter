@@ -84,14 +84,14 @@ class _TopSectionState extends State<TopSection> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    '오늘 커밋하면 연속 3일🔥',
+                    '오늘 커밋하면 연속 2일🔥',
                     style: TextStyle(fontSize : 18, color: Colors.red, fontFamily: 'Pretendard-Bold', fontWeight: FontWeight.w900),
                     textAlign: TextAlign.center,
 
                   ),
 
                   Text(
-                    '${widget.hundred}일 연속 커밋까지 D-97',
+                    '${widget.hundred}일 연속 커밋까지 D-98',
                     style: TextStyle(fontSize : 16, color: Colors.red, fontFamily: 'Pretendard', fontWeight: FontWeight.w600),
                     textAlign: TextAlign.center,
                   ),

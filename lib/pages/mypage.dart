@@ -370,9 +370,9 @@ class _MyPageState extends State<MyPage> {
     );
 
     if (confirmed) {
-       final url = 'http://localhost:3000/guestbook/cowboysj/${entry.id}';
+      final url = 'http://localhost:3000/guestbook/cowboysj/${entry.id}';
 
-       final response = await http.delete(Uri.parse(url));
+      final response = await http.delete(Uri.parse(url));
 
       if (response.statusCode == 200) {
         print('Guestbook entry deleted successfully');
