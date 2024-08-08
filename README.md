@@ -25,24 +25,3 @@
 
 
 
-
-## 🤗OpenSource Contribution
-1. 기여할 Repository를 Fork 해주세요.
-2. 코드를 수정한 뒤 Pull Request를 보내주세요.
-3. 리뷰 후 빠른 시일 내에 Merge 해드리겠습니다.
-
-## 🪧License
-Client, Server 모두 MIT License입니다.
-
-해당 소프트웨어를 누구라도 무상으로 제한없이 취급해도 좋습니다.
-
-단, 저작권 표시 및 이 허가 표시를 소프트웨어의 모든 복제물 또는 중요한 부분에 기재해야 하며저자 또는 저작권자는 소프트웨어에 관해 아무런 책임을 지지 않습니다.
-
-
-<img src="https://github.com/GIT-COMMunITy/.github/assets/108571492/0267abbd-9efe-47db-af20-a26aaf5bd08b" width=50% />
-
-
-[Client](https://github.com/GIT-COMMunITy/flutter?tab=MIT-1-ov-file)
-[Server](https://github.com/GIT-COMMunITy/server?tab=MIT-1-ov-file)
-
-
